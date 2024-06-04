@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+    *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    }
+    html, body {
+    width: 100%;
+    height: 100%;
+    }
+    #main{
+         position: absolute;
+         top: 50%;
+         left: 50%;
+         transform: translate(-50%,-50%);
+        }
+        .canvas{
+            border: 2px solid black;
+        }
+        .top,.bottom{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin: 20px 0 20px 0;
+            /* top right botto, left */
+        }
+        .block,input,select,button{
+           width: 80%;
+        }
+
+        .top>.block{
+            margin: 10px;
+        }
+        .bottom> button{
+            margin:10px ;
+        }
+        .block>p{
+            margin: 10px auto;
+            width: 50%;
+        }
+    </style>
+    <link rel="icon" href="favicon-16x16.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+    <div id="main">
+    <div class="top">
+        <div class="block">
+            <p>Text Color Picker</p>
+            <input class="form-control" type="color" id="textcolor">
+        </div>
+        <div class="block">
+            <p>Background</p>
+            <input class="form-control" type="color" id="backgroundcolor">
+        </div>
+        <div class="block">
+            <p>Font size</p>
+            <select id="fontsize">
+                <option value="5">5px</option>
+                <option value="10">10px</option>
+                <option value="20">20px</option>
+                <option value="30">30px</option>
+                <option value="40">40px</option>
+                <option value="50">50px</option>
+            </select>
+        </div>
+    </div>
+    <canvas class="canvas" id="myCanvas" width="800" height="500"></canvas>
+    <div class="bottom">
+        <button type="button"  class="btn btn-danger"id="clrbutton">Clear</button>
+        <button type="button"class="btn btn-success" id="save">Save and Download</button>
+        <button type="button" class="btn btn-warning" id="retrieve">Retrieve saved signature</button>
+    </div>
+    </div>
+
+    <script>
+        const colorpicker=document.getElementById("textcolor");
+        const canvascolor=document.getElementById("backgroundcolor");
+        const canvas=document.getElementById("myCanvas");
+        const clear=document.getElementById("clrbutton");
+        const save=document.getElementById("save");
+        const fontsize=document.getElementById("fontsize");
+        const retrieve=document.getElementById("retrieve")
+        const ctx=canvas.getContext('2d');
+    //   This line gets the 2D drawing context for the canvas. This context is used to draw on the canvas.
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        // lastX and lastY store the last known positions of the mouse. These are used to draw continuous lines.
+
+        colorpicker.addEventListener('change',(e)=>{
+            ctx.strokeStyle=e.target.value;
+            ctx.fillStyle=e.target.value;
+        })
+    //    ctx.strokeStyle and ctx.fillStyle are set to the new color value. This changes the color of the lines and fills drawn on the canvas.
+
+        canvas.addEventListener('mousedown',(e)=>{
+            isDrawing=true;
+            lastX=e.offsetX;
+            lastY=e.OffsetY;
+        })
+       
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                ctx.beginPath(); 
+                // ctx.beginPath() starts a new path for drawing
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+                // ctx.stroke() actually renders the line on the canvas.
+                lastX = e.offsetX;
+                lastY = e.offsetY;
+                // lastX and lastY are then updated to the current mouse position to continue drawing smoothly from this point next time the event is triggered.
+
+            }
+        });
+        canvas.addEventListener('mouseup',(e)=>{
+            isDrawing=false;
+        })
+        canvascolor.addEventListener('change',(e)=>{
+            ctx.fillStyle=e.target.value;
+            ctx.fillRect(0,0,800,500);
+            // ctx.fillRect(0, 0, canvas.width, canvas.height) draws a filled rectangle starting at the top-left corner (0, 0) and covering the entire width and height of the canvas.
+        })
+        fontsize.addEventListener('change',(e)=>{
+            ctx.lineWidth=e.target.value
+        })
+        clear.addEventListener('click',()=>{
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+        })
+        save.addEventListener('click',()=>{
+            // Save the current canvas content as a data URL in local storage
+            localStorage.setItem('canvasContents',canvas.toDataURL());
+
+            // Create an <a> element to facilitate the download
+            let link=document.createElement('a');
+            // Set the download filename
+            link.download='my-canvas.png';
+
+            // it Sets the href attribute of the link to the Data URL of the canvas content. This makes the link point to the image data.
+            link.href=canvas.toDataURL();
+            link.click();
+        })
+
+        retrieve.addEventListener('click',()=>{
+            let savedCanvas=localStorage.getItem('canvasContents');
+            if(savedCanvas)
+            {
+                let img=new Image();
+                img.src=savedCanvas;
+                ctx.drawImage(img,0,0);
+                // draws the image starting at the coordinates (0, 0) on the canvas, which is the top-left corner.
+            }
+        })
+    </script>
+</body>
+</html>
